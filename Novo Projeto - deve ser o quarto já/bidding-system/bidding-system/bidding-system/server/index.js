@@ -41,6 +41,30 @@ socketIO.on('connection', (socket) => {
 
   });
 
+
+  socket.on('addProduct', (data) => {
+
+    productData['products'].push(data);
+
+    const stringData = JSON.stringify(productData, null, 2);
+
+    fs.writeFile('data.json', stringData, (err) => {
+
+      console.error(err);
+
+    });
+
+  });
+
+
+  //Listens for new bids from the client
+
+  socket.on('bidProduct', (data) => {
+
+    console.log(data);
+
+  });
+
 });
 
 
