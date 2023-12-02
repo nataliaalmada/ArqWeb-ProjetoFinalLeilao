@@ -105,8 +105,8 @@ tr, td, th {
   font-size: 16px;
   outline: none;
   border: none;
-  color: #fff;
-  background-color:  rgb(67, 143, 67);
+  color: #ffffffd9;
+  background-color:  rgb(67, 94, 143);
   cursor: pointer;
 }
 .bidProduct__name {

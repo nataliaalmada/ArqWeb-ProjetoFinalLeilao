@@ -1,84 +1,64 @@
-const express = require('express');
-
-const app = express();
-
-const PORT = 4000;
-
-const fs = require('fs');
-
+const express = require("express")
+const app = express()
+const cors = require("cors")
 const http = require('http').Server(app);
-
-const cors = require('cors');
-
+const PORT = 4000
+const fs = require("fs")
 const socketIO = require('socket.io')(http, {
-
-  cors: {
-
-    origin: 'http://localhost:3000',
-
-  },
-
+    cors: {
+        origin: "http://localhost:3000"
+    }
 });
+const savedData = fs.readFileSync("data.json")
+const objectData = JSON.parse(savedData)
+
+app.use(cors())
 
 
-//Gets the JSON file and parse the file into JavaScript object
+function findProduct(nameKey, myArray, last_bidder, amount){
+  for (let i=0; i < myArray.length; i++) {
+      if (myArray[i].name === nameKey) {
+         myArray[i].last_bidder = last_bidder
+         myArray[i].price = amount 
+      }
+    }
+  const stringData = JSON.stringify(objectData, null, 2)
+  fs.writeFile("data.json", stringData, (err)=> {
+    console.error(err)
+  })
+}
 
-const rawData = fs.readFileSync('data.json');
-
-const productData = JSON.parse(rawData);
-
-
-app.use(cors());
 
 
 socketIO.on('connection', (socket) => {
-
-  console.log(`⚡: ${socket.id} user just connected!`);
-
-  socket.on('disconnect', () => {
-
-    console.log('🔥: A user disconnected');
-
-  });
-
-
-  socket.on('addProduct', (data) => {
-
-    productData['products'].push(data);
-
-    const stringData = JSON.stringify(productData, null, 2);
-
-    fs.writeFile('data.json', stringData, (err) => {
-
-      console.error(err);
-
+    console.log(`⚡: ${socket.id} user just connected!`);
+    socket.on('disconnect', () => {
+      console.log('🔥: A user disconnected');
     });
 
+    socket.on('addProduct', (data) => {
+        objectData["products"].push(data)
+        const stringData = JSON.stringify(objectData, null, 2)
+        fs.writeFile("data.json", stringData, (err)=> {
+          console.error(err)
+        })
+    socket.broadcast.emit("addProductResponse", data)
   });
 
-
-  //Listens for new bids from the client
-
-  socket.on('bidProduct', (data) => {
-
-    console.log(data);
-
-  });
+  socket.on("bidProduct", data => {
+    findProduct(data.name, objectData["products"], data.last_bidder, data.amount)   
+    socket.broadcast.emit("bidProductResponse", data)
+  })
 
 });
 
-
-//Returns the JSON file
-
-app.get('/api', (req, res) => {
-
-  res.json(productData);
-
+app.get("/api", (req, res) => {
+  const data = fs.readFileSync("data.json")
+  const products =  JSON.parse(data)
+  res.json(products)
 });
 
-
+   
 http.listen(PORT, () => {
-
-  console.log(`Server listening on ${PORT}`);
-
+    console.log(`Server listening on ${PORT}`);
 });
