@@ -21,8 +21,6 @@ const socketIO = require('socket.io')(http, {
 });
 
 
-//Add this before the app.get() block
-
 socketIO.on('connection', (socket) => {
 
     console.log(`⚡: ${socket.id} user just connected!`);
